@@ -1,6 +1,7 @@
 import PossibleParser
 import unittest
 
+
 class TestPossibleParser(unittest.TestCase):
 
     def testGiven2LinesAStructuredLineIsCreated(self):
