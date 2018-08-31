@@ -71,8 +71,8 @@ def compareLogLinesWithin(aLogLineArray):
         similarLines.remove(line)
         if len(similarLines) == 0:
             notRepeatedLines.append(line)
-        for index in range(len(similarLines)):
-            repeatedLines.append(findParamValueAndReplaceIfSimilarLines(line, similarLines[index], 2))
+        for similar in similarLines:
+            repeatedLines.append(findParamValueAndReplaceIfSimilarLines(line, similar, 2))
     return appendWith(notRepeatedLines, set(repeatedLines))
 
 
