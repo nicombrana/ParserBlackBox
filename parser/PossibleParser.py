@@ -21,6 +21,7 @@ def findParamValueAndReplaceConsideringToken(aLogLine, anotherLogLine, maxParamV
     structuredLineArray.append("")
     if structuredLineArray[0] == "":
         return ""
+    structuredLineArray[1] = firstLogLine[1]
     if firstLogLine[1] != secondLogLine[1]:
         structuredLineArray[1] = " *"
     return aToken.join(structuredLineArray)
@@ -59,10 +60,23 @@ def parseLogText(aLogText):
     finalVector = []
     for logLine in aLogArray:
         aLogLineArray.append(removeTagsFromLineAfterToken(logLine, " : "))
+    return set(compareLogLinesWithin(aLogLineArray))
+
+
+def compareLogLinesWithin(aLogLineArray):
+    notRepeatedLines = []
+    repeatedLines = []
     for line in aLogLineArray:
-        similarLines = aLogLineArray
+        similarLines = list(filter(lambda a: sameLength(line, a), aLogLineArray))
         similarLines.remove(line)
-        similarLines = list(filter(lambda a: sameLength(line, a), similarLines))
-        for similar in similarLines:
-            finalVector.append(findParamValueAndReplaceIfSimilarLines(line, similar, 2))
-    return set(finalVector)
+        if len(similarLines) == 0:
+            notRepeatedLines.append(line)
+        for index in range(len(similarLines)):
+            repeatedLines.append(findParamValueAndReplaceIfSimilarLines(line, similarLines[index], 2))
+    return appendWith(notRepeatedLines, set(repeatedLines))
+
+
+def appendWith(aList, anotherList):
+    for elem in anotherList:
+        aList.append(elem)
+    return aList
