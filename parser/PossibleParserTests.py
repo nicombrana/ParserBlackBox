@@ -57,6 +57,6 @@ class TestPossibleParser(unittest.TestCase):
         (h-checkout-v1-04) 2018-02-21 05:00:04,024 INFO [1DUv9FFU-hTeHfH50-h-checkout-v1-04-63160-CRl4uePK0m] [c1a09542-3493-409d-9edd-12a8ca98dce6] [http-9290-39] (...)hotels.domain.abtest.AbTestService (AbTestService.java:43) : AbtestDto was succesfully retrieved with value: AbTestDto{upperBound=50, abName=staypopup, forceUpdate=false}"""
 
         structuredLineArray = PossibleParser.parseLogText(aLogText)
-        expectedStructuredLineArray = {'The Method chas.getRoomPacksV3 took 278 to run', 'AbtestpriceWithoutSurprises does not apply so returns default branch', 'AbtestDto was succesfully retrieved with value: *', 'abTestResult was found in cookies with value: *'}
+        expectedStructuredLineArray = ['The Method chas.getRoomPacksV3 took 278 to run', 'AbtestpriceWithoutSurprises does not apply so returns default branch', 'AbtestDto was succesfully retrieved with value: *', 'abTestResult was found in cookies with value: *']
 
         self.assertEqual(structuredLineArray, expectedStructuredLineArray)

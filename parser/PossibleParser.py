@@ -60,7 +60,7 @@ def parseLogText(aLogText):
     finalVector = []
     for logLine in aLogArray:
         aLogLineArray.append(removeTagsFromLineAfterToken(logLine, " : "))
-    return set(compareLogLinesWithin(aLogLineArray))
+    return compareLogLinesWithin(aLogLineArray)
 
 
 def compareLogLinesWithin(aLogLineArray):
@@ -73,10 +73,19 @@ def compareLogLinesWithin(aLogLineArray):
             notRepeatedLines.append(line)
         for similar in similarLines:
             repeatedLines.append(findParamValueAndReplaceIfSimilarLines(line, similar, 2))
-    return appendWith(notRepeatedLines, set(repeatedLines))
+    aStructuredLogLineList = appendWith(notRepeatedLines, makeSet(repeatedLines))
+    return makeSet(aStructuredLogLineList)
 
 
 def appendWith(aList, anotherList):
     for elem in anotherList:
         aList.append(elem)
     return aList
+
+
+def makeSet(aList):
+    set = []
+    for index in range(len(aList)):
+        if set.count(aList[index]) == 0:
+            set.append(aList[index])
+    return set
