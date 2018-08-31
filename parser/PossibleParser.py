@@ -19,6 +19,8 @@ def findParamValueAndReplaceConsideringToken(aLogLine, anotherLogLine, maxParamV
     structuredLine = findParamValueAndReplace(firstLogLine[0], secondLogLine[0], maxParamValues)
     structuredLineArray = [structuredLine]
     structuredLineArray.append("")
+    if structuredLineArray[0] == "":
+        return ""
     if firstLogLine[1] != secondLogLine[1]:
         structuredLineArray[1] = " *"
     return aToken.join(structuredLineArray)
