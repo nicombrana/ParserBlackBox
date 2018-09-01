@@ -8,7 +8,7 @@ def findParamValueAndReplace(aLogLine, anotherLogLine, maxParamValues):
             anotherLogLineList[index] = "*"
     structuredLine = " ".join(anotherLogLineList)
     if anotherLogLineList.count("*") > maxParamValues:
-        return ""
+        return aLogLine
     return structuredLine
 
 
@@ -19,8 +19,6 @@ def findParamValueAndReplaceConsideringToken(aLogLine, anotherLogLine, maxParamV
     structuredLine = findParamValueAndReplace(firstLogLine[0], secondLogLine[0], maxParamValues)
     structuredLineArray = [structuredLine]
     structuredLineArray.append("")
-    if structuredLineArray[0] == "":
-        return ""
     structuredLineArray[1] = firstLogLine[1]
     if firstLogLine[1] != secondLogLine[1]:
         structuredLineArray[1] = " *"
@@ -57,7 +55,6 @@ def splitTextIntoByToken(aText, aToken):
 def parseLogText(aLogText):
     aLogArray = splitTextIntoByToken(aLogText, "\n")
     aLogLineArray = []
-    finalVector = []
     for logLine in aLogArray:
         aLogLineArray.append(removeTagsFromLineAfterToken(logLine, " : "))
     return compareLogLinesWithin(aLogLineArray)
