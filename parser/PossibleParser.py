@@ -61,16 +61,17 @@ def parseLogText(aLogText):
 
 
 def compareLogLinesWithin(aLogLineArray):
-    notRepeatedLines = []
-    repeatedLines = []
+    structuredLine = ""
+    aStructuredLogLineList = []
     for line in aLogLineArray:
         similarLines = list(filter(lambda a: sameLength(line, a), aLogLineArray))
         similarLines.remove(line)
-        if len(similarLines) == 0:
-            notRepeatedLines.append(line)
+        structuredLine = line
         for similar in similarLines:
-            repeatedLines.append(findParamValueAndReplaceIfSimilarLines(line, similar, 2))
-    aStructuredLogLineList = appendWith(notRepeatedLines, makeSet(repeatedLines))
+            answer = findParamValueAndReplaceIfSimilarLines(line, similar, 2)
+            if structuredLine.count("*") < answer.count("*"):
+                structuredLine = answer
+        aStructuredLogLineList.append(structuredLine)
     return makeSet(aStructuredLogLineList)
 
 
