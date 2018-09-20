@@ -8,7 +8,7 @@ class TestPossibleParser(unittest.TestCase):
         aLine = "AbtestpriceWithoutSurprisesdoes not apply so returns default branch"
         anotherLine = "AbtestDto not apply so returns default branch"
 
-        aStructuredLine = PossibleParser.findParamValueAndReplace(aLine, anotherLine, 2)
+        aStructuredLine = PossibleParser.structurizedLogLines(aLine, anotherLine, 2)
 
         self.assertEqual(aStructuredLine, "* not apply so returns default branch")
 
@@ -17,7 +17,7 @@ class TestPossibleParser(unittest.TestCase):
         aLine = "AbtestpriceWithoutSurprisesdoes not apply so returns default branch"
         anotherLine = "AbtestDto not apply so returns default branch"
 
-        aStructuredLine = PossibleParser.findParamValueAndReplaceIfSimilarLines(aLine, anotherLine, 2)
+        aStructuredLine = PossibleParser.structurizedSimilarLines(aLine, anotherLine, 2)
 
         self.assertEqual(aStructuredLine, "* not apply so returns default branch")
 
@@ -26,7 +26,7 @@ class TestPossibleParser(unittest.TestCase):
         aLine = "AbtestDto was succesfully retrieved with value: AbTestDto{upperBound=50, abName=hurryUp, forceUpdate=false}"
         anotherLine = "The Method chas.getRoomPacksV3 took 278 to run"
 
-        aStructuredLine = PossibleParser.findParamValueAndReplaceIfSimilarLines(aLine, anotherLine, 2)
+        aStructuredLine = PossibleParser.structurizedSimilarLines(aLine, anotherLine, 2)
 
         self.assertEquals(aStructuredLine, None)
 
@@ -35,7 +35,7 @@ class TestPossibleParser(unittest.TestCase):
         aLine = "AbtestDto was succesfully retrieved with value: AbTestDto{upperBound=50, abName=hurryUp, forceUpdate=false}"
         anotherLine = "AbtestDto was succesfully retrieved with value: AbTestDto{upperBound=100, abName=chanchito, forceUpdate=false}"
 
-        aStructuredLine = PossibleParser.findParamValueAndReplaceIfSimilarLines(aLine, anotherLine, 2)
+        aStructuredLine = PossibleParser.structurizedSimilarLines(aLine, anotherLine, 2)
 
         self.assertEqual(aStructuredLine, "AbtestDto was succesfully retrieved with value: *")
 

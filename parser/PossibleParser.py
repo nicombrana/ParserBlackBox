@@ -1,22 +1,32 @@
-def findParamValueAndReplace(aLogLine, anotherLogLine, maxParamValues):
+def structurizedLogLines(aLogLine, anotherLogLine, maxParamValues):
     logLineList = splitTextIntoByToken(aLogLine, " ")
     anotherLogLineList = splitTextIntoByToken(anotherLogLine, " ")
-    for index in range(len(logLineList)):
-        word = logLineList[index]
-        anotherWord = anotherLogLineList[index]
-        if word != anotherWord:
-            anotherLogLineList[index] = "*"
-    structuredLine = " ".join(anotherLogLineList)
-    if anotherLogLineList.count("*") > maxParamValues:
+    structuredLine = structurizedLineList(logLineList, anotherLogLineList)
+    if structuredLine.count("*") > maxParamValues:
         return aLogLine
     return structuredLine
 
 
-def findParamValueAndReplaceConsideringToken(aLogLine, anotherLogLine, maxParamValues, aToken):
+def structurizedIfEqualWords(aWord, anotherWord):
+    if aWord != anotherWord:
+        return "*"
+    return aWord
+
+
+def structurizedLineList(aLineList, anotherLineList):
+    structuredLineList = []
+    for index in range(len(aLineList)):
+        aWord = aLineList[index]
+        anotherWord = anotherLineList[index]
+        structuredLineList.append(structurizedIfEqualWords(aWord, anotherWord))
+    return " ".join(structuredLineList)
+
+
+def structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, aToken):
     firstLogLine = splitTextIntoByToken(aLogLine, aToken)
     secondLogLine = splitTextIntoByToken(anotherLogLine, aToken)
 
-    structuredLine = findParamValueAndReplace(firstLogLine[0], secondLogLine[0], maxParamValues)
+    structuredLine = structurizedLogLines(firstLogLine[0], secondLogLine[0], maxParamValues)
     structuredLineArray = [structuredLine]
     structuredLineArray.append("")
     structuredLineArray[1] = firstLogLine[1]
@@ -25,8 +35,12 @@ def findParamValueAndReplaceConsideringToken(aLogLine, anotherLogLine, maxParamV
     return aToken.join(structuredLineArray)
 
 
-def haveTheToken(aLogLine, anotherLogLine, aToken):
-    return (aLogLine.count(aToken) > 0) & (anotherLogLine.count(aToken) > 0)
+def bothHaveTheToken(aLogLine, anotherLogLine, aToken):
+    return hasToken(aLogLine, aToken) & hasToken(anotherLogLine, aToken)
+
+
+def hasToken(aLogLine, aToken):
+    return (aLogLine.count(aToken) > 0)
 
 
 def sameLength(aLogLine, anotherLogLine):
@@ -35,11 +49,11 @@ def sameLength(aLogLine, anotherLogLine):
     return len(logLineList) == len(anotherLogLineList)
 
 
-def findParamValueAndReplaceIfSimilarLines(aLogLine, anotherLogLine, maxParamValues):
+def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues):
     if sameLength(aLogLine, anotherLogLine):
-        if haveTheToken(aLogLine, anotherLogLine, ":"):
-            return findParamValueAndReplaceConsideringToken(aLogLine, anotherLogLine, maxParamValues, ":")
-        return findParamValueAndReplace(aLogLine, anotherLogLine, maxParamValues)
+        if bothHaveTheToken(aLogLine, anotherLogLine, ":"):
+            return structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, ":")
+        return structurizedLogLines(aLogLine, anotherLogLine, maxParamValues)
 
 
 def removeTagsFromLineAfterToken(aLogLine, aToken):
@@ -60,6 +74,14 @@ def parseLogText(aLogText):
     return compareLogLinesWithin(aLogLineArray)
 
 
+def makeSet(aList):
+    set = []
+    for index in range(len(aList)):
+        if set.count(aList[index]) == 0:
+            set.append(aList[index])
+    return set
+
+
 def compareLogLinesWithin(aLogLineArray):
     structuredLine = ""
     aStructuredLogLineList = []
@@ -68,7 +90,7 @@ def compareLogLinesWithin(aLogLineArray):
         similarLines.remove(line)
         structuredLine = line
         for similar in similarLines:
-            answer = findParamValueAndReplaceIfSimilarLines(line, similar, 2)
+            answer = structurizedSimilarLines(line, similar, 2)
             if structuredLine.count("*") < answer.count("*"):
                 structuredLine = answer
         aStructuredLogLineList.append(structuredLine)
@@ -79,11 +101,3 @@ def appendWith(aList, anotherList):
     for elem in anotherList:
         aList.append(elem)
     return aList
-
-
-def makeSet(aList):
-    set = []
-    for index in range(len(aList)):
-        if set.count(aList[index]) == 0:
-            set.append(aList[index])
-    return set
