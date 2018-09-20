@@ -1,6 +1,6 @@
 def parseLogText(aLogText):
     aLogLineArray = keepFreeText(aLogText, " : ")
-    return compareLogLinesWithin(aLogLineArray)
+    return compareLogLinesWithin(aLogLineArray, ":")
 
 
 def keepFreeText(aLogText, aToken):
@@ -11,25 +11,30 @@ def keepFreeText(aLogText, aToken):
     return aLogLineArray
 
 
-def compareLogLinesWithin(aLogLineArray):
+def compareLogLinesWithin(aLogLineArray, aToken):
     structuredLine = ""
     aStructuredLogLineList = []
     for line in aLogLineArray:
-        similarLines = list(filter(lambda a: sameLength(line, a), aLogLineArray))
+        similarLines = list(filter(lambda a: sameLength(line, a, aToken), aLogLineArray))
         similarLines.remove(line)
-        structuredLine = line
-        for similar in similarLines:
-            answer = structurizedSimilarLines(line, similar, 2)
-            if structuredLine.count("*") < answer.count("*"):
-                structuredLine = answer
+        structuredLine = getStructuredLine(line, similarLines, aToken)
         aStructuredLogLineList.append(structuredLine)
     return makeSet(aStructuredLogLineList)
 
 
-def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues):
-    if sameLength(aLogLine, anotherLogLine):
-        if bothHaveTheToken(aLogLine, anotherLogLine, ":"):
-            return structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, ":")
+def getStructuredLine(aLine, aListOfLines, aToken):
+    structuredLine = aLine
+    for similar in aListOfLines:
+        answer = structurizedSimilarLines(aLine, similar, 2, aToken)
+        if structuredLine.count("*") < answer.count("*"):
+            structuredLine = answer
+    return structuredLine
+
+
+def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues, aToken):
+    if bothHaveTheToken(aLogLine, anotherLogLine, aToken):
+        return structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, aToken)
+    if not(hasToken(aLogLine, aToken)) & (not(hasToken(anotherLogLine, aToken))):
         return structurizedLogLines(aLogLine, anotherLogLine, maxParamValues)
 
 
@@ -78,10 +83,18 @@ def hasToken(aLogLine, aToken):
     return (aLogLine.count(aToken) > 0)
 
 
-def sameLength(aLogLine, anotherLogLine):
-    logLineList = splitTextIntoByToken(aLogLine, " ")
-    anotherLogLineList = splitTextIntoByToken(anotherLogLine, " ")
-    return len(logLineList) == len(anotherLogLineList)
+def sameLength(aLogLine, anotherLogLine, aToken):
+    if not(hasToken(aLogLine, aToken)) & (not(hasToken(anotherLogLine, aToken))):
+        logLineList = splitTextIntoByToken(aLogLine, " ")
+        anotherLogLineList = splitTextIntoByToken(anotherLogLine, " ")
+        return len(logLineList) == len(anotherLogLineList)
+    if (bothHaveTheToken(aLogLine, anotherLogLine, aToken)):
+        aLine = splitTextIntoByToken(aLogLine, aToken)
+        aLine = aLine[0]
+        anotherLine = splitTextIntoByToken(anotherLogLine, aToken)
+        anotherLine = anotherLine[0]
+        return len(aLine) == len(anotherLine)
+    return False
 
 
 def removeTagsFromLineAfterToken(aLogLine, aToken):
