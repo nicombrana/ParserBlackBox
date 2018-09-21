@@ -1,10 +1,17 @@
+lineSeparatorToken = "\n"
+freeTextSeparatorToken = " : "
+wildcardToken = "*"
+valueSeparatorToken = ":"
+valueWildcardToken = " *"
+
+
 def parseLogText(aLogText):
-    aLogLineArray = keepFreeText(aLogText, " : ")
-    return compareLogLinesWithin(aLogLineArray, ":")
+    aLogLineArray = keepFreeText(aLogText, freeTextSeparatorToken)
+    return compareLogLinesWithin(aLogLineArray, valueSeparatorToken)
 
 
 def keepFreeText(aLogText, aToken):
-    aLogArray = splitTextIntoByToken(aLogText, "\n")
+    aLogArray = splitTextIntoByToken(aLogText, lineSeparatorToken)
     aLogLineArray = []
     for logLine in aLogArray:
         aLogLineArray.append(removeTagsFromLineAfterToken(logLine, aToken))
@@ -15,18 +22,22 @@ def compareLogLinesWithin(aLogLineArray, aToken):
     structuredLine = ""
     aStructuredLogLineList = []
     for line in aLogLineArray:
-        similarLines = list(filter(lambda a: sameLength(line, a, aToken), aLogLineArray))
+        similarLines = getSimilarLines(line, aLogLineArray, aToken)
         similarLines.remove(line)
         structuredLine = getStructuredLine(line, similarLines, aToken)
         aStructuredLogLineList.append(structuredLine)
     return makeSet(aStructuredLogLineList)
 
 
+def getSimilarLines(aLine, aLineArray, aToken):
+    return list(filter(lambda a: sameLength(aLine, a, aToken), aLineArray))
+
+
 def getStructuredLine(aLine, aListOfLines, aToken):
     structuredLine = aLine
     for similar in aListOfLines:
         answer = structurizedSimilarLines(aLine, similar, 2, aToken)
-        if structuredLine.count("*") < answer.count("*"):
+        if structuredLine.count(wildcardToken) < answer.count(wildcardToken):
             structuredLine = answer
     return structuredLine
 
@@ -43,11 +54,12 @@ def structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues
     secondLogLine = splitTextIntoByToken(anotherLogLine, aToken)
 
     structuredLine = structurizedLogLines(firstLogLine[0], secondLogLine[0], maxParamValues)
+
     structuredLineArray = [structuredLine]
     structuredLineArray.append("")
     structuredLineArray[1] = firstLogLine[1]
     if firstLogLine[1] != secondLogLine[1]:
-        structuredLineArray[1] = " *"
+        structuredLineArray[1] = valueWildcardToken
     return aToken.join(structuredLineArray)
 
 
@@ -55,7 +67,7 @@ def structurizedLogLines(aLogLine, anotherLogLine, maxParamValues):
     logLineList = splitTextIntoByToken(aLogLine, " ")
     anotherLogLineList = splitTextIntoByToken(anotherLogLine, " ")
     structuredLine = structurizedLineList(logLineList, anotherLogLineList)
-    if structuredLine.count("*") > maxParamValues:
+    if structuredLine.count(wildcardToken) > maxParamValues:
         return aLogLine
     return structuredLine
 
@@ -71,7 +83,7 @@ def structurizedLineList(aLineList, anotherLineList):
 
 def structurizedIfEqualWords(aWord, anotherWord):
     if aWord != anotherWord:
-        return "*"
+        return wildcardToken
     return aWord
 
 
