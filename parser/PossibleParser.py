@@ -84,16 +84,16 @@ def hasToken(aLogLine, aToken):
 
 
 def sameLength(aLogLine, anotherLogLine, aToken):
+    if (bothHaveTheToken(aLogLine, anotherLogLine, aToken)):
+        aLine = splitTextIntoByToken(aLogLine, aToken)
+        aLine = splitTextIntoByToken(aLine[0], " ")
+        anotherLine = splitTextIntoByToken(anotherLogLine, aToken)
+        anotherLine = splitTextIntoByToken(anotherLine[0], " ")
+        return len(aLine) == len(anotherLine)
     if not(hasToken(aLogLine, aToken)) & (not(hasToken(anotherLogLine, aToken))):
         logLineList = splitTextIntoByToken(aLogLine, " ")
         anotherLogLineList = splitTextIntoByToken(anotherLogLine, " ")
         return len(logLineList) == len(anotherLogLineList)
-    if (bothHaveTheToken(aLogLine, anotherLogLine, aToken)):
-        aLine = splitTextIntoByToken(aLogLine, aToken)
-        aLine = aLine[0]
-        anotherLine = splitTextIntoByToken(anotherLogLine, aToken)
-        anotherLine = anotherLine[0]
-        return len(aLine) == len(anotherLine)
     return False
 
 
