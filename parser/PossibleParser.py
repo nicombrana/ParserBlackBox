@@ -1,3 +1,7 @@
+import datetime
+import functools
+
+freeTextFileName = "FreeTextLog.txt"
 lineSeparatorToken = "\n"
 freeTextSeparatorToken = " : "
 wildcardToken = "*"
@@ -5,28 +9,70 @@ valueSeparatorToken = ":"
 valueWildcardToken = " *"
 
 
-def parseLogText(aLogText):
-    aLogLineArray = keepFreeText(aLogText, freeTextSeparatorToken)
-    return compareLogLinesWithin(aLogLineArray, valueSeparatorToken)
+def parseFullLogText(aLogText):
+    aFreeTextLog = keepFreeText(aLogText, freeTextSeparatorToken)
+    aLogLineArray = lineSeparatorToken.join(aFreeTextLog)
+    return parseFreeText(aLogLineArray, valueSeparatorToken)
 
 
-def keepFreeText(aLogText, aToken):
-    aLogArray = splitTextIntoByToken(aLogText, lineSeparatorToken)
-    aLogLineArray = []
-    for logLine in aLogArray:
-        aLogLineArray.append(removeTagsFromLineAfterToken(logLine, aToken))
-    return aLogLineArray
+def parseLogFile(aCompleteLogFileName):
+    generateFreeTextLog(aCompleteLogFileName)
+    parseFreeTextByChunks()
 
 
-def compareLogLinesWithin(aLogLineArray, aToken):
+def parseFreeTextByChunks():
+    freeTextFile = open(freeTextFileName, 'r')
+    aLogLineChunk = freeTextFile.read(4194304)
+    print("Initialize Parsing")
+    print(datetime.datetime.now().time())
+    output = parseFreeText(aLogLineChunk, valueSeparatorToken)
+    print(datetime.datetime.now().time())
+    print("Parsing Completed")
+    structuredLogFile = open("StructuredLog.txt", 'w')
+    structuredLogFile.write(lineSeparatorToken.join(output))
+    structuredLogFile.close()
+
+
+def generateFreeTextLog(aCompleteLogFileName):
+    print("Remove Metadata and Generate FreeText Log")
+    logFile = open(aCompleteLogFileName, encoding="ISO-8859-1")
+    freeTextLog = open(freeTextFileName, 'w')
+    for line in logFile:
+        freeText = removeTagsFromLineAfterToken(line, freeTextSeparatorToken)
+        freeTextLog.write(freeText)
+    freeTextLog.close()
+    logFile.close()
+    print("Metada Removed and FreeText Log Generated")
+
+
+def parseFreeText(aLogChunk, aToken):
+    aLogLineArray = splitTextIntoByToken(aLogChunk, lineSeparatorToken)
     structuredLine = ""
     aStructuredLogLineList = []
-    for line in aLogLineArray:
-        similarLines = getSimilarLines(line, aLogLineArray, aToken)
-        similarLines.remove(line)
-        structuredLine = getStructuredLine(line, similarLines, aToken)
-        aStructuredLogLineList.append(structuredLine)
+    withoutTokens = list(filter(lambda aLine: not(hasToken(aLine, aToken)), aLogLineArray))
+    withToken = list(filter(lambda aLine: aLine.count(aToken) == 1, aLogLineArray))
+    withMoreThanOneToken = list(filter(lambda aLine: aLine.count(aToken) > 1, aLogLineArray))
+    group = [withoutTokens, withToken, withMoreThanOneToken]
+    for array in group:
+        for line in aLogLineArray:
+            wasLineAlready = any(matchesStructuredLine(line, logKey, aToken) for logKey in aStructuredLogLineList)
+            if not(wasLineAlready):
+                similarLines = getSimilarLines(line, aLogLineArray, aToken)
+                similarLines.remove(line)
+                structuredLine = getStructuredLine(line, similarLines, aToken)
+                aStructuredLogLineList.append(structuredLine)
     return makeSet(aStructuredLogLineList)
+
+
+def appendAndCompareLogs(aLogLine, anotherLogLine, aToken):
+    newLogLine = appendWith(aLogLine, anotherLogLine)
+    return parseFreeText(newLogLine, aToken)
+
+
+def matchesStructuredLine(aLine, aStructuredLine, aToken):
+    if sameLength(aLine, aStructuredLine, aToken):
+        return getStructuredLine(aLine, [aStructuredLine], aToken) == aStructuredLine
+    return False
 
 
 def getSimilarLines(aLine, aLineArray, aToken):
@@ -107,6 +153,14 @@ def sameLength(aLogLine, anotherLogLine, aToken):
         anotherLogLineList = splitTextIntoByToken(anotherLogLine, " ")
         return len(logLineList) == len(anotherLogLineList)
     return False
+
+
+def keepFreeText(aLogText, aToken):
+    aLogArray = splitTextIntoByToken(aLogText, lineSeparatorToken)
+    aLogLineArray = []
+    for logLine in aLogArray:
+        aLogLineArray.append(removeTagsFromLineAfterToken(logLine, aToken))
+    return aLogLineArray
 
 
 def removeTagsFromLineAfterToken(aLogLine, aToken):
