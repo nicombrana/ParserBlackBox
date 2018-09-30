@@ -1,5 +1,7 @@
 import datetime
 import functools
+import concurrent.futures
+
 
 freeTextFileName = "FreeTextLog.txt"
 lineSeparatorToken = "\n"
@@ -21,16 +23,31 @@ def parseLogFile(aCompleteLogFileName):
 
 
 def parseFreeTextByChunks():
+    output = []
     freeTextFile = open(freeTextFileName, 'r')
-    aLogLineChunk = freeTextFile.read(4194304)
-    print("Initialize Parsing")
+    print("Initialize Parsing By Chunks")
     print(datetime.datetime.now().time())
-    output = parseFreeText(aLogLineChunk, valueSeparatorToken)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        for f in executor.map(lambda a: parseFreeText(a, valueSeparatorToken), readInChunks(freeTextFile)):
+            output.append(list(f))
     print(datetime.datetime.now().time())
-    print("Parsing Completed")
+    print("Parsing By Chunks Completed")
+    print("Begin Reduction")
+    print(datetime.datetime.now().time())
+    logKey = functools.reduce(lambda aLogArray, anotherLogArray: appendAndCompareLogs(aLogArray, anotherLogArray, valueSeparatorToken), output)
+    print(datetime.datetime.now().time())
+    print("Reduction Completed")
     structuredLogFile = open("StructuredLog.txt", 'w')
-    structuredLogFile.write(lineSeparatorToken.join(output))
+    structuredLogFile.write(lineSeparatorToken.join(logKey))
     structuredLogFile.close()
+
+
+def readInChunks(aFile, chunk_size=8388608):
+    while True:
+        chunk = aFile.read(chunk_size)
+        if not chunk:
+            break
+        yield chunk
 
 
 def generateFreeTextLog(aCompleteLogFileName):
@@ -65,7 +82,8 @@ def parseFreeText(aLogChunk, aToken):
 
 
 def appendAndCompareLogs(aLogLine, anotherLogLine, aToken):
-    newLogLine = appendWith(aLogLine, anotherLogLine)
+    newLogLineArray = appendWith(aLogLine, anotherLogLine)
+    newLogLine = lineSeparatorToken.join(newLogLineArray)
     return parseFreeText(newLogLine, aToken)
 
 
