@@ -33,6 +33,9 @@ def parseFreeTextByChunks():
 
     print("Initialize Parsing 1 Chunk")
     print(datetime.datetime.now().time())
+    freeText.readline()
+    freeText.readLine()
+    freeText.readLine()
     firstChunk = freeTextFile.read(8388608)
     logKey = parseFreeText(firstChunk, valueSeparatorToken)
     print(datetime.datetime.now().time())
@@ -110,7 +113,6 @@ def compareLogs(aLogKeyArray, aLogLines, aToken):
         exists = any(matchesStructuredLine(line, logKey, aToken) for logKey in aLogKeyArray)
         if not(exists):
             similarLines = getSimilarLines(line, aLogKeyArray, aToken)
-            similarLines.remove(line)
             structuredLine = getStructuredLine(line, similarLines, aToken)
             output.append(structuredLine)
     return output
@@ -240,4 +242,4 @@ def appendWith(aList, anotherList):
     return aList
 
 
-parseLogFile()
+parseLogFile("sep15")
