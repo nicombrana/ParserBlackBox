@@ -96,10 +96,10 @@ def parseArray(aLogLineArray, aToken):
     withMoreThanOneToken = list(filter(lambda aLine: aLine.count(aToken) > 1, aLogLineArray))
     group = [withoutTokens, withToken, withMoreThanOneToken]
     for array in group:
-        for line in aLogLineArray:
+        for line in array:
             wasLineAlready = any(matchesStructuredLine(line, logKey, aToken) for logKey in aStructuredLogLineList)
             if not(wasLineAlready):
-                similarLines = getSimilarLines(line, aLogLineArray, aToken)
+                similarLines = getSimilarLines(line, array, aToken)
                 similarLines.remove(line)
                 structuredLine = getStructuredLine(line, similarLines, aToken)
                 aStructuredLogLineList.append(structuredLine)
