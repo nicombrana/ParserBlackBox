@@ -88,7 +88,7 @@ def parseFreeText(aLogChunk, aToken):
     return parseArray(aLogLineArray, aToken)
 
 
-def parseArray(aLogLineArray, aToken)
+def parseArray(aLogLineArray, aToken):
     structuredLine = ""
     aStructuredLogLineList = []
     withoutTokens = list(filter(lambda aLine: not(hasToken(aLine, aToken)), aLogLineArray))
