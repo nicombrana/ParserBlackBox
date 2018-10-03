@@ -33,9 +33,9 @@ def parseFreeTextByChunks():
 
     print("Initialize Parsing 1 Chunk")
     print(datetime.datetime.now().time())
-    freeText.readline()
-    freeText.readLine()
-    freeText.readLine()
+    freeTextFile.readline()
+    freeTextFile.readline()
+    freeTextFile.readline()
     firstChunk = freeTextFile.read(8388608)
     logKey = parseFreeText(firstChunk, valueSeparatorToken)
     print(datetime.datetime.now().time())
