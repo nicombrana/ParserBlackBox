@@ -1,6 +1,5 @@
 import datetime
 import sys
-import functools
 import concurrent.futures
 import multiprocessing
 
@@ -8,7 +7,7 @@ import multiprocessing
 LogFileName = sys.argv[1]
 FreeTextFileName = sys.argv[2]
 StructuredLogFileName = sys.argv[3]
-freeTextSeparatorToken = sys.argv[4]# " - "
+freeTextSeparatorToken = sys.argv[4]
 lineSeparatorToken = "\n"
 wildcardToken = "*"
 valueWildcardToken = " *"
@@ -43,7 +42,6 @@ def parseFreeTextByChunks():
     print(datetime.datetime.now().time())
     print("Parsing 1 Chunk Completed")
 
-    #reduce the next chunks against the already parsed one.
     print("Begin Reduction of File by Chunks against the 1 Parsed Chunk")
     with concurrent.futures.ThreadPoolExecutor(max_workers=maxWorkers) as executor:
         for f in executor.map(lambda a: compareLogs(logKey, a, valueSeparatorToken), readInChunks(freeTextFile)):
@@ -51,11 +49,10 @@ def parseFreeTextByChunks():
             appendWith(logKey, newLines)
     print(datetime.datetime.now().time())
     print("Reduction of File by Chunks against the 1 Parsed Chunk Completed")
-    #Maybe just a makeSet(logKey) si all we need. If it doesn't work, we could do this
+
     print("Begin Elimination of Particular Cases")
     print(datetime.datetime.now().time())
     logKey = parseArray(logKey, valueSeparatorToken)
-#    logKey = makeSet(logKey)
     print(datetime.datetime.now().time())
     print("Elimination Completed")
 
@@ -66,7 +63,7 @@ def parseFreeTextByChunks():
     print("Parsing Completed")
 
 
-def readInChunks(aFile, chunk_size=8388608):
+def readInChunks(aFile, chunk_size=4194304):
     while True:
         chunk = aFile.read(chunk_size)
         if not chunk:
@@ -76,6 +73,7 @@ def readInChunks(aFile, chunk_size=8388608):
 
 def generateFreeTextLog(aCompleteLogFileName):
     print("Remove Metadata and Generate FreeText Log")
+    print(datetime.datetime.now().time())
     logFile = open(aCompleteLogFileName, encoding="ISO-8859-1")
     freeTextLog = open(FreeTextFileName, 'w')
     for line in logFile:
@@ -83,6 +81,7 @@ def generateFreeTextLog(aCompleteLogFileName):
         freeTextLog.write(freeText)
     freeTextLog.close()
     logFile.close()
+    print(datetime.datetime.now().time())
     print("Metada Removed and FreeText Log Generated")
 
 
@@ -94,18 +93,13 @@ def parseFreeText(aLogChunk, aToken):
 def parseArray(aLogLineArray, aToken):
     structuredLine = ""
     aStructuredLogLineList = []
-    withoutTokens = list(filter(lambda aLine: not(hasToken(aLine, aToken)), aLogLineArray))
-    withToken = list(filter(lambda aLine: aLine.count(aToken) == 1, aLogLineArray))
-    withMoreThanOneToken = list(filter(lambda aLine: aLine.count(aToken) > 1, aLogLineArray))
-    group = [withoutTokens, withToken, withMoreThanOneToken]
-    for array in group:
-        for line in array:
-            wasLineAlready = any(matchesStructuredLine(line, logKey, aToken) for logKey in aStructuredLogLineList)
-            if not(wasLineAlready):
-                similarLines = getSimilarLines(line, array, aToken)
-                similarLines.remove(line)
-                structuredLine = getStructuredLine(line, similarLines, aToken)
-                aStructuredLogLineList.append(structuredLine)
+    for line in aLogLineArray:
+        wasLineAlready = any(matchesStructuredLine(line, logKey, aToken) for logKey in aStructuredLogLineList)
+        if not(wasLineAlready):
+            similarLines = getSimilarLines(line, aLogLineArray, aToken)
+            similarLines.remove(line)
+            structuredLine = getStructuredLine(line, similarLines, aToken)
+            aStructuredLogLineList.append(structuredLine)
     return makeSet(aStructuredLogLineList)
 
 # Create abstraction
@@ -243,6 +237,3 @@ def appendWith(aList, anotherList):
     for elem in anotherList:
         aList.append(elem)
     return aList
-
-
-parseLogFile()
