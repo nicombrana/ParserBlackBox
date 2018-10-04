@@ -42,17 +42,18 @@ def parseFreeTextByChunks():
     print("Parsing 1 Chunk Completed")
 
     #reduce the next chunks against the already parsed one.
-    print("Begin Reduction of Fille by Chunks against the 1 Parsed Chunk")
+    print("Begin Reduction of File by Chunks against the 1 Parsed Chunk")
     with concurrent.futures.ThreadPoolExecutor(max_workers=maxWorkers) as executor:
         for f in executor.map(lambda a: compareLogs(logKey, a, valueSeparatorToken), readInChunks(freeTextFile)):
             newLines = list(f)
             appendWith(logKey, newLines)
     print(datetime.datetime.now().time())
     print("Reduction of File by Chunks against the 1 Parsed Chunk Completed")
-
+    #Maybe just a makeSet(logKey) si all we need. If it doesn't work, we could do this
     print("Begin Elimination of Particular Cases")
     print(datetime.datetime.now().time())
-    logKey = parseArray(logKey, valueSeparatorToken)
+#    logKey = parseArray(logKey, valueSeparatorToken)
+    logKey = makeSet(logKey)
     print(datetime.datetime.now().time())
     print("Elimination Completed")
 
