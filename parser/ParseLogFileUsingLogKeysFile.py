@@ -46,10 +46,4 @@ def openAndReadFile(aFileName):
     return aFileContent
 
 
-def saveAndWriteFile(aFileName, aContentToSave):
-    aFile = open(aFileName, "w+")
-    aFile.write(aContentToSave)
-    aFile.close()
-
-
 parseLogUsingLogKeys()
