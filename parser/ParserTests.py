@@ -1,14 +1,14 @@
-import PossibleParser
+import Parser
 import unittest
 
 
-class TestPossibleParser(unittest.TestCase):
+class TestParser(unittest.TestCase):
 
     def testGiven2LinesAStructuredLineIsCreated(self):
         aLine = "AbtestpriceWithoutSurprisesdoes not apply so returns default branch"
         anotherLine = "AbtestDto not apply so returns default branch"
 
-        aStructuredLine = PossibleParser.structurizedLogLines(aLine, anotherLine, 2)
+        aStructuredLine = Parser.structurizedLogLines(aLine, anotherLine, 2)
 
         self.assertEqual(aStructuredLine, "* not apply so returns default branch")
 
@@ -17,7 +17,7 @@ class TestPossibleParser(unittest.TestCase):
         aLine = "AbtestpriceWithoutSurprisesdoes not apply so returns default branch"
         anotherLine = "AbtestDto not apply so returns default branch"
 
-        aStructuredLine = PossibleParser.structurizedSimilarLines(aLine, anotherLine, 2, ":")
+        aStructuredLine = Parser.structurizedSimilarLines(aLine, anotherLine, 2, ":")
 
         self.assertEqual(aStructuredLine, "* not apply so returns default branch")
 
@@ -26,7 +26,7 @@ class TestPossibleParser(unittest.TestCase):
         aLine = "AbtestDto was succesfully retrieved with value: AbTestDto{upperBound=50, abName=hurryUp, forceUpdate=false}"
         anotherLine = "The Method chas.getRoomPacksV3 took 278 to run"
 
-        aStructuredLine = PossibleParser.structurizedSimilarLines(aLine, anotherLine, 2, ":")
+        aStructuredLine = Parser.structurizedSimilarLines(aLine, anotherLine, 2, ":")
 
         self.assertEquals(aStructuredLine, None)
 
@@ -42,7 +42,7 @@ class TestPossibleParser(unittest.TestCase):
 
     def testWhenGivenACompleteLogLineTheInformationPartIsCorrectlyReturned(self):
         aCompleteLine = "(h-checkout-v1-04) 2018-02-21 05:00:04,023 INFO [1DUv9FFU-hTeHfH50-h-checkout-v1-04-63160-CRl4uePK0m] [c1a09542-3493-409d-9edd-12a8ca98dce6] [http-9290-39] (...)hotels.domain.abtest.AbTestService (AbTestService.java:43) : AbtestDto was succesfully retrieved with value: AbTestDto{upperBound=50, abName=hurryUp, forceUpdate=false}"
-        informationLine = PossibleParser.removeTagsFromLineAfterToken(aCompleteLine, " : ")
+        informationLine = Parser.removeTagsFromLineAfterToken(aCompleteLine, " : ")
 
         self.assertEqual(informationLine, "AbtestDto was succesfully retrieved with value: AbTestDto{upperBound=50, abName=hurryUp, forceUpdate=false}")
 
@@ -56,7 +56,7 @@ class TestPossibleParser(unittest.TestCase):
         (h-checkout-v1-04) 2018-02-21 05:00:04,024 INFO [1DUv9FFU-hTeHfH50-h-checkout-v1-04-63160-CRl4uePK0m] [c1a09542-3493-409d-9edd-12a8ca98dce6] [http-9290-39] (...)hotels.domain.abtest.AbTestService (AbTestService.java:52) : abTestResult was found in cookies with value: AbTestResult{abTestName=chanchito, abBranchWinner=branchA, apply=true, branchAWon=true, configurationsMap={banner=ab-dummy.ftl}}
         (h-checkout-v1-04) 2018-02-21 05:00:04,024 INFO [1DUv9FFU-hTeHfH50-h-checkout-v1-04-63160-CRl4uePK0m] [c1a09542-3493-409d-9edd-12a8ca98dce6] [http-9290-39] (...)hotels.domain.abtest.AbTestService (AbTestService.java:43) : AbtestDt was succesfully retrieved with value: AbTestDto{upperBound=50, abName=staypopup, forceUpdate=false}"""
 
-        structuredLineArray = PossibleParser.parseFullLogText(aLogText)
+        structuredLineArray = Parser.parseFullLogText(aLogText)
         expectedStructuredLineArray = ['The Method chas.getRoomPacksV3 took 278 to run', 'AbtestpriceWithoutSurprises does not apply so returns default branch', '* was succesfully retrieved with value: *', 'abTestResult was found in cookies with value: *']
 
         self.assertEqual(structuredLineArray, expectedStructuredLineArray)

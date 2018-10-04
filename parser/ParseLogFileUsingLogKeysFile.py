@@ -1,5 +1,5 @@
 #!/bin/python3
-import PossibleParser as Parser
+import Parser
 import datetime
 import sys
 

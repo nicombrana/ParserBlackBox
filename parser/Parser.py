@@ -1,16 +1,18 @@
 import datetime
+import sys
 import functools
 import concurrent.futures
 import multiprocessing
 
 
-freeTextFileName = "FreeTextLog.txt"
-structuredLogFileName = "StructuredLog.txt"
+LogFileName = sys.argv[1]
+FreeTextFileName = sys.argv[2]
+StructuredLogFileName = sys.argv[3]
+freeTextSeparatorToken = sys.argv[4]# " - "
 lineSeparatorToken = "\n"
-freeTextSeparatorToken = " - "
 wildcardToken = "*"
-valueSeparatorToken = ":"
 valueWildcardToken = " *"
+valueSeparatorToken = ":"
 maxWorkers = multiprocessing.cpu_count()
 
 
@@ -20,8 +22,8 @@ def parseFullLogText(aLogText):
     return parseFreeText(aLogLineArray, valueSeparatorToken)
 
 
-def parseLogFile(aCompleteLogFileName):
-    generateFreeTextLog(aCompleteLogFileName)
+def parseLogFile():
+    generateFreeTextLog(LogFileName)
     parseFreeTextByChunks()
 
 
@@ -29,7 +31,7 @@ def parseFreeTextByChunks():
     print("Begin Parsing")
     print(datetime.datetime.now().time())
     logKey = []
-    freeTextFile = open(freeTextFileName, 'r')
+    freeTextFile = open(FreeTextFileName, 'r')
 
     print("Initialize Parsing 1 Chunk")
     print(datetime.datetime.now().time())
@@ -57,7 +59,7 @@ def parseFreeTextByChunks():
     print(datetime.datetime.now().time())
     print("Elimination Completed")
 
-    structuredLogFile = open(structuredLogFileName, 'w')
+    structuredLogFile = open(StructuredLogFileName, 'w')
     structuredLogFile.write(lineSeparatorToken.join(logKey))
     structuredLogFile.close()
     print(datetime.datetime.now().time())
@@ -75,7 +77,7 @@ def readInChunks(aFile, chunk_size=8388608):
 def generateFreeTextLog(aCompleteLogFileName):
     print("Remove Metadata and Generate FreeText Log")
     logFile = open(aCompleteLogFileName, encoding="ISO-8859-1")
-    freeTextLog = open(freeTextFileName, 'w')
+    freeTextLog = open(FreeTextFileName, 'w')
     for line in logFile:
         freeText = removeTagsFromLineAfterToken(line, freeTextSeparatorToken)
         freeTextLog.write(freeText)
@@ -220,9 +222,9 @@ def keepFreeText(aLogText, aToken):
 
 
 def removeTagsFromLineAfterToken(aLogLine, aToken):
-    log = splitTextIntoByToken(aLogLine, aToken)
-    lastIndex = len(log) - 1
-    return "".join(log[lastIndex])
+    aLogArray = splitTextIntoByToken(aLogLine, aToken)
+    aLogArray.remove(aLogArray[0])
+    return aToken.join(aLogArray)
 
 
 def splitTextIntoByToken(aText, aToken):
@@ -243,4 +245,4 @@ def appendWith(aList, anotherList):
     return aList
 
 
-parseLogFile("sep15")
+parseLogFile()
