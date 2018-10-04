@@ -54,8 +54,8 @@ def parseFreeTextByChunks():
     #Maybe just a makeSet(logKey) si all we need. If it doesn't work, we could do this
     print("Begin Elimination of Particular Cases")
     print(datetime.datetime.now().time())
-#    logKey = parseArray(logKey, valueSeparatorToken)
-    logKey = makeSet(logKey)
+    logKey = parseArray(logKey, valueSeparatorToken)
+#    logKey = makeSet(logKey)
     print(datetime.datetime.now().time())
     print("Elimination Completed")
 
