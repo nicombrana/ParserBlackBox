@@ -38,13 +38,13 @@ def parseFreeTextByChunks():
     freeTextFile.readline()
     freeTextFile.readline()
     firstChunk = freeTextFile.read(8388608)
-    logKey = parseFreeText(firstChunk, valueSeparatorToken)
+    logKey = parseFreeText(firstChunk)
     print(datetime.datetime.now().time())
     print("Parsing 1 Chunk Completed")
 
     print("Begin Reduction of File by Chunks against the 1 Parsed Chunk")
     with concurrent.futures.ThreadPoolExecutor(max_workers=maxWorkers) as executor:
-        for f in executor.map(lambda a: compareLogs(logKey, a, valueSeparatorToken), readInChunks(freeTextFile)):
+        for f in executor.map(lambda a: compareLogs(logKey, a), readInChunks(freeTextFile)):
             newLines = list(f)
             appendWith(logKey, newLines)
     print(datetime.datetime.now().time())
@@ -52,7 +52,7 @@ def parseFreeTextByChunks():
 
     print("Begin Elimination of Particular Cases")
     print(datetime.datetime.now().time())
-    logKey = parseArray(logKey, valueSeparatorToken)
+    logKey = parseArray(logKey)
     print(datetime.datetime.now().time())
     print("Elimination Completed")
 
@@ -85,65 +85,65 @@ def generateFreeTextLog(aCompleteLogFileName):
     print("Metada Removed and FreeText Log Generated")
 
 
-def parseFreeText(aLogChunk, aToken):
+def parseFreeText(aLogChunk):
     aLogLineArray = splitTextIntoByToken(aLogChunk, lineSeparatorToken)
-    return parseArray(aLogLineArray, aToken)
+    return parseArray(aLogLineArray)
 
 
-def parseArray(aLogLineArray, aToken):
+def parseArray(aLogLineArray):
     structuredLine = ""
     aStructuredLogLineList = []
     for line in aLogLineArray:
-        wasLineAlready = any(matchesStructuredLine(line, logKey, aToken) for logKey in aStructuredLogLineList)
+        wasLineAlready = any(matchesStructuredLine(line, logKey) for logKey in aStructuredLogLineList)
         if not(wasLineAlready):
-            similarLines = getSimilarLines(line, aLogLineArray, aToken)
+            similarLines = getSimilarLines(line, aLogLineArray)
             similarLines.remove(line)
-            structuredLine = getStructuredLine(line, similarLines, aToken)
+            structuredLine = getStructuredLine(line, similarLines)
             aStructuredLogLineList.append(structuredLine)
     return makeSet(aStructuredLogLineList)
 
 # Create abstraction
-def compareLogs(aLogKeyArray, aLogLines, aToken):
+def compareLogs(aLogKeyArray, aLogLines):
     aLogArray = splitTextIntoByToken(aLogLines, lineSeparatorToken)
     output = []
     for line in aLogArray:
-        exists = any(matchesStructuredLine(line, logKey, aToken) for logKey in aLogKeyArray)
+        exists = any(matchesStructuredLine(line, logKey) for logKey in aLogKeyArray)
         if not(exists):
-            similarLines = getSimilarLines(line, aLogKeyArray, aToken)
-            structuredLine = getStructuredLine(line, similarLines, aToken)
+            similarLines = getSimilarLines(line, aLogKeyArray)
+            structuredLine = getStructuredLine(line, similarLines)
             output.append(structuredLine)
     return output
 
 
-def appendAndCompareLogs(aLogLine, anotherLogLine, aToken):
+def appendAndCompareLogs(aLogLine, anotherLogLine):
     newLogLineArray = appendWith(aLogLine, anotherLogLine)
     newLogLine = lineSeparatorToken.join(newLogLineArray)
-    return parseFreeText(newLogLine, aToken)
+    return parseFreeText(newLogLine)
 
 
-def matchesStructuredLine(aLine, aStructuredLine, aToken):
-    if sameLength(aLine, aStructuredLine, aToken):
-        return getStructuredLine(aLine, [aStructuredLine], aToken) == aStructuredLine
+def matchesStructuredLine(aLine, aStructuredLine):
+    if sameLength(aLine, aStructuredLine):
+        return getStructuredLine(aLine, [aStructuredLine]) == aStructuredLine
     return False
 
 
-def getSimilarLines(aLine, aLineArray, aToken):
-    return list(filter(lambda a: sameLength(aLine, a, aToken), aLineArray))
+def getSimilarLines(aLine, aLineArray):
+    return list(filter(lambda a: sameLength(aLine, a), aLineArray))
 
 
-def getStructuredLine(aLine, aListOfLines, aToken):
+def getStructuredLine(aLine, aListOfLines):
     structuredLine = aLine
     for similar in aListOfLines:
-        answer = structurizedSimilarLines(aLine, similar, 2, aToken)
+        answer = structurizedSimilarLines(aLine, similar, 2)
         if structuredLine.count(wildcardToken) < answer.count(wildcardToken):
             structuredLine = answer
     return structuredLine
 
 
-def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues, aToken):
-    if bothHaveTheToken(aLogLine, anotherLogLine, aToken):
-        return structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, aToken)
-    if not(hasToken(aLogLine, aToken)) & (not(hasToken(anotherLogLine, aToken))):
+def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues):
+    if bothHaveTheToken(aLogLine, anotherLogLine, valueSeparatorToken):
+        return structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, valueSeparatorToken)
+    if not(hasToken(aLogLine, valueSeparatorToken)) & (not(hasToken(anotherLogLine, valueSeparatorToken))):
         return structurizedLogLines(aLogLine, anotherLogLine, maxParamValues)
 
 
@@ -151,13 +151,11 @@ def structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues
     firstLogLine = splitTextIntoByToken(aLogLine, aToken)
     secondLogLine = splitTextIntoByToken(anotherLogLine, aToken)
 
-    structuredLine = structurizedLogLines(firstLogLine[0], secondLogLine[0], maxParamValues)
+    structuredLine = structurizedLogLines(firstLogLine[0], secondLogLine[0], 1)
 
     structuredLineArray = [structuredLine]
     structuredLineArray.append("")
-    structuredLineArray[1] = firstLogLine[1]
-    if firstLogLine[1] != secondLogLine[1]:
-        structuredLineArray[1] = valueWildcardToken
+    structuredLineArray[1] = valueWildcardToken
     return aToken.join(structuredLineArray)
 
 
@@ -193,14 +191,14 @@ def hasToken(aLogLine, aToken):
     return (aLogLine.count(aToken) > 0)
 
 
-def sameLength(aLogLine, anotherLogLine, aToken):
-    if (bothHaveTheToken(aLogLine, anotherLogLine, aToken)):
-        aLine = splitTextIntoByToken(aLogLine, aToken)
+def sameLength(aLogLine, anotherLogLine):
+    if (bothHaveTheToken(aLogLine, anotherLogLine, valueSeparatorToken)):
+        aLine = splitTextIntoByToken(aLogLine, valueSeparatorToken)
         aLine = splitTextIntoByToken(aLine[0], " ")
-        anotherLine = splitTextIntoByToken(anotherLogLine, aToken)
+        anotherLine = splitTextIntoByToken(anotherLogLine, valueSeparatorToken)
         anotherLine = splitTextIntoByToken(anotherLine[0], " ")
         return len(aLine) == len(anotherLine)
-    if not(hasToken(aLogLine, aToken)) & (not(hasToken(anotherLogLine, aToken))):
+    if not(hasToken(aLogLine, valueSeparatorToken)) & (not(hasToken(anotherLogLine, valueSeparatorToken))):
         logLineList = splitTextIntoByToken(aLogLine, " ")
         anotherLogLineList = splitTextIntoByToken(anotherLogLine, " ")
         return len(logLineList) == len(anotherLogLineList)
