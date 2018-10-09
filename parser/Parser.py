@@ -109,7 +109,7 @@ def compareLogs(aLogKeyArray, aLogLines):
     for line in aLogArray:
         exists = any(matchesStructuredLine(line, logKey) for logKey in aLogKeyArray)
         if not(exists):
-            similarLines = getSimilarLines(line, aLogKeyArray)
+            similarLines = getSimilarLines(line, aLogArray)
             structuredLine = getStructuredLine(line, similarLines)
             output.append(structuredLine)
     return output
