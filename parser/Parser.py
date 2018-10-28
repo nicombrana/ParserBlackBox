@@ -10,8 +10,7 @@ StructuredLogFileName = sys.argv[3]
 freeTextSeparatorToken = sys.argv[4]
 lineSeparatorToken = "\n"
 wildcardToken = "*"
-valueWildcardToken = " *"
-valueSeparatorToken = ":"
+valueSeparatorToken = ": "
 maxWorkers = multiprocessing.cpu_count()
 
 
@@ -34,10 +33,8 @@ def parseFreeTextByChunks():
 
     print("Initialize Parsing 1 Chunk")
     print(datetime.datetime.now().time())
-    freeTextFile.readline()
-    freeTextFile.readline()
-    freeTextFile.readline()
-    firstChunk = freeTextFile.read(8388608)
+    readLines(freeTextFile, 3)
+    firstChunk = readLines(freeTextFile, 512)
     logKey = parseFreeText(firstChunk)
     print(datetime.datetime.now().time())
     print("Parsing 1 Chunk Completed")
@@ -47,28 +44,38 @@ def parseFreeTextByChunks():
         for f in executor.map(lambda a: compareLogs(logKey, a), readInChunks(freeTextFile)):
             newLines = list(f)
             appendWith(logKey, newLines)
+    freeTextFile.close()
     print(datetime.datetime.now().time())
     print("Reduction of File by Chunks against the 1 Parsed Chunk Completed")
 
     print("Begin Elimination of Particular Cases")
     print(datetime.datetime.now().time())
-    logKey = parseArray(logKey)
+    finalLogKeys = parseArray(logKey)
     print(datetime.datetime.now().time())
     print("Elimination Completed")
 
     structuredLogFile = open(StructuredLogFileName, 'w')
-    structuredLogFile.write(lineSeparatorToken.join(logKey))
+    structuredLogFile.write(lineSeparatorToken.join(finalLogKeys))
     structuredLogFile.close()
     print(datetime.datetime.now().time())
     print("Parsing Completed")
 
 
-def readInChunks(aFile, chunk_size=4194304):
+def readInChunks(aFile, lines_ammount=256):
     while True:
-        chunk = aFile.read(chunk_size)
+        chunk = readLines(aFile, lines_ammount)
         if not chunk:
             break
         yield chunk
+
+
+def readLines(aFile, anAmmountOfLines):
+    lines = ""
+    times = 1
+    while times <= anAmmountOfLines:
+        lines += aFile.readline()
+        times += 1
+    return lines
 
 
 def generateFreeTextLog(aCompleteLogFileName):
@@ -77,6 +84,7 @@ def generateFreeTextLog(aCompleteLogFileName):
     logFile = open(aCompleteLogFileName, encoding="ISO-8859-1")
     freeTextLog = open(FreeTextFileName, 'w')
     for line in logFile:
+        #create timeStampFile
         freeText = removeTagsFromLineAfterToken(line, freeTextSeparatorToken)
         freeTextLog.write(freeText)
     freeTextLog.close()
@@ -102,7 +110,7 @@ def parseArray(aLogLineArray):
             aStructuredLogLineList.append(structuredLine)
     return makeSet(aStructuredLogLineList)
 
-# Create abstraction
+
 def compareLogs(aLogKeyArray, aLogLines):
     aLogArray = splitTextIntoByToken(aLogLines, lineSeparatorToken)
     output = []
@@ -155,7 +163,7 @@ def structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues
 
     structuredLineArray = [structuredLine]
     structuredLineArray.append("")
-    structuredLineArray[1] = valueWildcardToken
+    structuredLineArray[1] = wildcardToken
     return aToken.join(structuredLineArray)
 
 

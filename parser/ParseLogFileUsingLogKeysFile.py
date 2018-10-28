@@ -14,12 +14,14 @@ def parseLogUsingLogKeys():
     print("Parsing New Log Initialize")
     print(datetime.datetime.now().time())
     aNewLog = open(aFileNameForSaving, "w+")
-    with open(aLogFileName, 'r') as aLog:
-        for aLogLine in aLog:
-            parsedLogLine = parseFileAgainstLogKeys(aLogLine, logKeys)
+    aLogFile = open(aLogFileName, 'r')
+    for aLogChunk in Parser.readInChunks(aLogFile):
+        freeText = Parser.keepFreeText(aLogChunk, Parser.freeTextSeparatorToken)
+        for aLogLine in freeText:
+            parsedLogLine = findLogKeyFor(aLogLine, logKeys)
             aNewLog.write(parsedLogLine)
             aNewLog.write(Parser.lineSeparatorToken)
-    aLog.close()
+    aLogFile.close()
     aNewLog.close()
     print(datetime.datetime.now().time())
     print("Parsing New Log Completed")
@@ -27,17 +29,17 @@ def parseLogUsingLogKeys():
 
 def parseFileAgainstLogKeys(aLogLine, aLogKeysLog):
     aLogLineArray = Parser.keepFreeText(aLogLine, Parser.freeTextSeparatorToken)
-    logKey = findLogKeyFor(aLogLineArray[0], aLogKeysLog, Parser.valueSeparatorToken)
+    logKey = findLogKeyFor(aLogLineArray[0], aLogKeysLog)
     return logKey
 
 
-def findLogKeyFor(aLogLine, aLogKeyLog, aToken):
-    return getLogKeyFor(aLogLine, aLogKeyLog, aToken)
+def findLogKeyFor(aLogLine, aLogKeyLog):
+    return getLogKeyFor(aLogLine, aLogKeyLog)
 
 
-def getLogKeyFor(aLogLine, aLogKeysLog, aToken):
-    logKeys = Parser.getSimilarLines(aLogLine, aLogKeysLog, aToken)
-    return Parser.getStructuredLine(aLogLine, logKeys, aToken)
+def getLogKeyFor(aLogLine, aLogKeysLog):
+    logKeys = Parser.getSimilarLines(aLogLine, aLogKeysLog)
+    return Parser.getStructuredLine(aLogLine, logKeys)
 
 
 def openAndReadFile(aFileName):
