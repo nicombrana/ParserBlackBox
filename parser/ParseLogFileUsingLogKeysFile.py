@@ -15,12 +15,17 @@ def parseLogUsingLogKeys():
     print(datetime.datetime.now().time())
     aNewLog = open(aFileNameForSaving, "w+")
     aLogFile = open(aLogFileName, 'r')
+    aTimeStampFile = open(aFileNameForSaving + 'Timestamp', "w+")
+    Parser.readLines(aLogFile, 3)
     for aLogChunk in Parser.readInChunks(aLogFile):
+        timeStamps = Parser.keepTimestamp(aLogChunk)
+        aTimeStampFile.write(timeStamps)
         freeText = Parser.keepFreeText(aLogChunk, Parser.freeTextSeparatorToken)
         for aLogLine in freeText:
             parsedLogLine = findLogKeyFor(aLogLine, logKeys)
             aNewLog.write(parsedLogLine)
             aNewLog.write(Parser.lineSeparatorToken)
+    aTimeStampFile.close()
     aLogFile.close()
     aNewLog.close()
     print(datetime.datetime.now().time())

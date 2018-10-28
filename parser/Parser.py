@@ -2,6 +2,7 @@ import datetime
 import sys
 import concurrent.futures
 import multiprocessing
+import re
 
 
 LogFileName = sys.argv[1]
@@ -33,7 +34,6 @@ def parseFreeTextByChunks():
 
     print("Initialize Parsing 1 Chunk")
     print(datetime.datetime.now().time())
-    readLines(freeTextFile, 3)
     firstChunk = readLines(freeTextFile, 512)
     logKey = parseFreeText(firstChunk)
     print(datetime.datetime.now().time())
@@ -83,8 +83,8 @@ def generateFreeTextLog(aCompleteLogFileName):
     print(datetime.datetime.now().time())
     logFile = open(aCompleteLogFileName, encoding="ISO-8859-1")
     freeTextLog = open(FreeTextFileName, 'w')
+    readLines(logFile, 3)
     for line in logFile:
-        #create timeStampFile
         freeText = removeTagsFromLineAfterToken(line, freeTextSeparatorToken)
         freeTextLog.write(freeText)
     freeTextLog.close()
@@ -243,3 +243,24 @@ def appendWith(aList, anotherList):
     for elem in anotherList:
         aList.append(elem)
     return aList
+
+
+def keepTimestamp(aLogText):
+    aLogArray = splitTextIntoByToken(aLogText, lineSeparatorToken)
+    aTimeStampArray = []
+    for logLine in aLogArray:
+        aTimeStampArray.append(getTimeStampFrom(logLine))
+    return "\n".join(aTimeStampArray)
+
+
+def getTimeStampFrom(aLine):
+    r = re.compile('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}')
+    lineArray = splitTextIntoByToken(aLine, " ")
+    timeStamp = []
+    if len(lineArray) > 2:
+        timeStamp.append(lineArray[1])
+        timeStamp.append(lineArray[2])
+    timeStamp = " ".join(timeStamp)
+    if r.match(timeStamp):
+        return timeStamp
+    return ""
