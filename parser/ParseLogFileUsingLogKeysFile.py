@@ -19,7 +19,7 @@ def parseLogUsingLogKeys():
     aTimeStampFile = open(aFileNameForSaving + 'Timestamp', "w+")
     Parser.readLines(aLogFile, 3)
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        for f in executor.map(lambda a: workTheChunksWithLogKeys(a, logKeys), Parser.readInChunks(aLogFile)):
+        for f in executor.map(lambda a: parseChunksWithLogKeys(a, logKeys), Parser.readInChunks(aLogFile)):
             newLines = list(f)
             aTimeStampFile.write(newLines[0])
             aNewLog.write(newLines[1])
@@ -30,7 +30,7 @@ def parseLogUsingLogKeys():
     print("Parsing New Log Completed")
 
 
-def workTheChunksWithLogKeys(aLogChunk, logKeys):
+def parseChunksWithLogKeys(aLogChunk, logKeys):
     timeStamps = Parser.keepTimestamp(aLogChunk)
     freeText = Parser.keepFreeText(aLogChunk, Parser.freeTextSeparatorToken)
     parsedLines = []
