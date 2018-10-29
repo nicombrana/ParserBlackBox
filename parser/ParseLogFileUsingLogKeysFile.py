@@ -2,6 +2,7 @@
 import Parser
 import datetime
 import sys
+import concurrent.futures
 
 
 aLogFileName = sys.argv[1]
@@ -17,19 +18,28 @@ def parseLogUsingLogKeys():
     aLogFile = open(aLogFileName, 'r')
     aTimeStampFile = open(aFileNameForSaving + 'Timestamp', "w+")
     Parser.readLines(aLogFile, 3)
-    for aLogChunk in Parser.readInChunks(aLogFile):
-        timeStamps = Parser.keepTimestamp(aLogChunk)
-        aTimeStampFile.write(timeStamps)
-        freeText = Parser.keepFreeText(aLogChunk, Parser.freeTextSeparatorToken)
-        for aLogLine in freeText:
-            parsedLogLine = findLogKeyFor(aLogLine, logKeys)
-            aNewLog.write(parsedLogLine)
-            aNewLog.write(Parser.lineSeparatorToken)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        for f in executor.map(lambda a: workTheChunksWithLogKeys(a, logKeys), Parser.readInChunks(aLogFile)):
+            newLines = list(f)
+            aTimeStampFile.write(newLines[0])
+            aNewLog.write(newLines[1])
     aTimeStampFile.close()
     aLogFile.close()
     aNewLog.close()
     print(datetime.datetime.now().time())
     print("Parsing New Log Completed")
+
+
+def workTheChunksWithLogKeys(aLogChunk, logKeys):
+    timeStamps = Parser.keepTimestamp(aLogChunk)
+    freeText = Parser.keepFreeText(aLogChunk, Parser.freeTextSeparatorToken)
+    parsedLines = []
+    for aLogLine in freeText:
+        parsedLines.append(findLogKeyFor(aLogLine, logKeys))
+    log = []
+    log.append(timeStamps)
+    log.append("\n".join(parsedLines))
+    return log
 
 
 def parseFileAgainstLogKeys(aLogLine, aLogKeysLog):
