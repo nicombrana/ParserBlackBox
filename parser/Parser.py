@@ -1,17 +1,19 @@
 import datetime
 import sys
+import os
 import concurrent.futures
 import multiprocessing
 import re
 
 
 LogFileName = sys.argv[1]
-FreeTextFileName = sys.argv[2]
-StructuredLogFileName = sys.argv[3]
-freeTextSeparatorToken = sys.argv[4]
+FreeTextFileName = LogFileName + "FreeText"
+StructuredLogFileName = sys.argv[2]
+freeTextSeparatorToken = sys.argv[3]
 lineSeparatorToken = "\n"
 wildcardToken = "*"
 valueSeparatorToken = ": "
+tokenList = [": ", "="]
 maxWorkers = multiprocessing.cpu_count()
 
 
@@ -57,6 +59,7 @@ def parseFreeTextByChunks():
     structuredLogFile = open(StructuredLogFileName, 'w')
     structuredLogFile.write(lineSeparatorToken.join(finalLogKeys))
     structuredLogFile.close()
+    os.remove(FreeTextFileName)
     print(datetime.datetime.now().time())
     print("Parsing Completed")
 
@@ -162,8 +165,7 @@ def structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues
     structuredLine = structurizedLogLines(firstLogLine[0], secondLogLine[0], 1)
 
     structuredLineArray = [structuredLine]
-    structuredLineArray.append("")
-    structuredLineArray[1] = wildcardToken
+    structuredLineArray.append(wildcardToken)
     return aToken.join(structuredLineArray)
 
 
@@ -192,7 +194,10 @@ def structurizedIfEqualWords(aWord, anotherWord):
 
 
 def bothHaveTheToken(aLogLine, anotherLogLine, aToken):
-    return hasToken(aLogLine, aToken) & hasToken(anotherLogLine, aToken)
+    answer = False
+    for token in tokenList:
+        answer = answer or (hasToken(aLogLine, token) & hasToken(anotherLogLine, token))
+    return answer
 
 
 def hasToken(aLogLine, aToken):
@@ -264,3 +269,10 @@ def getTimeStampFrom(aLine):
     if r.match(timeStamp):
         return timeStamp
     return ""
+
+
+def tokenCount(aLine):
+    tokenCount = 0
+    for token in tokenList:
+        tokenCount += aLine.count(token)
+    return tokenCount

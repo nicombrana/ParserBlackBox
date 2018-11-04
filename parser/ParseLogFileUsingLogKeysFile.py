@@ -7,7 +7,7 @@ import concurrent.futures
 
 aLogFileName = sys.argv[1]
 aLogKeysFileName = sys.argv[2]
-aFileNameForSaving = sys.argv[3]
+aFileNameForSaving = aLogFileName + "LogLyzed"
 
 
 def parseLogUsingLogKeys():
