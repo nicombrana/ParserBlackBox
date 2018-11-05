@@ -42,6 +42,7 @@ def parseFreeTextByChunks():
     print("Parsing 1 Chunk Completed")
 
     print("Begin Reduction of File by Chunks against the 1 Parsed Chunk")
+    print(datetime.datetime.now().time())
     with concurrent.futures.ThreadPoolExecutor(max_workers=maxWorkers) as executor:
         for f in executor.map(lambda a: compareLogs(logKey, a), readInChunks(freeTextFile)):
             newLines = list(f)
@@ -144,11 +145,24 @@ def getSimilarLines(aLine, aLineArray):
 
 def getStructuredLine(aLine, aListOfLines):
     structuredLine = aLine
+    tokenCount = 0
     for similar in aListOfLines:
         answer = structurizedSimilarLines(aLine, similar, 2)
-        if structuredLine.count(wildcardToken) < answer.count(wildcardToken):
+        if tokenCount < answer.count(wildcardToken):
             structuredLine = answer
+            tokenCount = structuredLine.count(wildcardToken)
     return structuredLine
+
+
+def hasMoreTokens(aStructuredLine, anotherAnswer):
+    firstLine = aStructuredLine
+    secondLine = anotherAnswer
+    if bothHaveTheToken(aStructuredLine, anotherAnswer, valueSeparatorToken):
+        a = splitTextIntoByToken(aStructuredLine, valueSeparatorToken)
+        firstLine = a[0]
+        b = splitTextIntoByToken(anotherAnswer, valueSeparatorToken)
+        secondLine = b[0]
+    return firstLine.count(wildcardToken) < secondLine.count(wildcardToken)
 
 
 def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues):
