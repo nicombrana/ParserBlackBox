@@ -13,7 +13,7 @@ freeTextSeparatorToken = sys.argv[3]
 lineSeparatorToken = "\n"
 wildcardToken = "*"
 valueSeparatorToken = ": "
-tokenList = [": ", "="]
+tokenList = [': ', '=', freeTextSeparatorToken]
 maxWorkers = multiprocessing.cpu_count()
 
 
@@ -161,8 +161,8 @@ def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues):
 def structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, aToken):
     firstLogLine = splitTextIntoByToken(aLogLine, aToken)
     secondLogLine = splitTextIntoByToken(anotherLogLine, aToken)
-
-    structuredLine = structurizedLogLines(firstLogLine[0], secondLogLine[0], 1)
+    cantTokens = 1 + tokenCount(firstLogLine[0])
+    structuredLine = structurizedLogLines(firstLogLine[0], secondLogLine[0], cantTokens)
 
     structuredLineArray = [structuredLine]
     structuredLineArray.append(wildcardToken)
