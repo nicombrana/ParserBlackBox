@@ -7,6 +7,7 @@ import concurrent.futures
 
 aLogFileName = sys.argv[1]
 aLogKeysFileName = sys.argv[2]
+freeTextSeparatorToken = sys.argv[3]
 aFileNameForSaving = aLogFileName + "LogLyzed"
 logKeys = []
 
@@ -38,7 +39,7 @@ def parseLogUsingLogKeys():
 
 def parseChunksWithLogKeys(aLogChunk, aLogKeys):
     timeStamps = Parser.keepTimestamp(aLogChunk)
-    freeText = Parser.keepFreeText(aLogChunk, Parser.freeTextSeparatorToken)
+    freeText = Parser.keepFreeText(aLogChunk, freeTextSeparatorToken)
     parsedLines = []
     for aLogLine in freeText:
         parsedLines.append(findLogKeyFor(aLogLine, aLogKeys))
@@ -49,7 +50,7 @@ def parseChunksWithLogKeys(aLogChunk, aLogKeys):
 
 
 def parseFileAgainstLogKeys(aLogLine, aLogKeysLog):
-    aLogLineArray = Parser.keepFreeText(aLogLine, Parser.freeTextSeparatorToken)
+    aLogLineArray = Parser.keepFreeText(aLogLine, freeTextSeparatorToken)
     logKey = findLogKeyFor(aLogLineArray[0], aLogKeysLog)
     return logKey
 
