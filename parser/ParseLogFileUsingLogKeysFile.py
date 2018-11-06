@@ -8,9 +8,11 @@ import concurrent.futures
 aLogFileName = sys.argv[1]
 aLogKeysFileName = sys.argv[2]
 aFileNameForSaving = aLogFileName + "LogLyzed"
+logKeys = []
 
 
 def parseLogUsingLogKeys():
+    global logKeys
     logKeys = Parser.splitTextIntoByToken(openAndReadFile(aLogKeysFileName), Parser.lineSeparatorToken)
     print("Parsing New Log Initialize")
     print(datetime.datetime.now().time())
@@ -26,16 +28,20 @@ def parseLogUsingLogKeys():
     aTimeStampFile.close()
     aLogFile.close()
     aNewLog.close()
+    logKeysFile = open(aLogKeysFileName, 'w')
+    logKeys = Parser.appendAndCompareLogs(logKeys, [])
+    logKeysFile.write("\n".join(logKeys))
+    logKeysFile.close()
     print(datetime.datetime.now().time())
     print("Parsing New Log Completed")
 
 
-def parseChunksWithLogKeys(aLogChunk, logKeys):
+def parseChunksWithLogKeys(aLogChunk, aLogKeys):
     timeStamps = Parser.keepTimestamp(aLogChunk)
     freeText = Parser.keepFreeText(aLogChunk, Parser.freeTextSeparatorToken)
     parsedLines = []
     for aLogLine in freeText:
-        parsedLines.append(findLogKeyFor(aLogLine, logKeys))
+        parsedLines.append(findLogKeyFor(aLogLine, aLogKeys))
     log = []
     log.append(timeStamps)
     log.append("\n".join(parsedLines))
@@ -53,8 +59,13 @@ def findLogKeyFor(aLogLine, aLogKeyLog):
 
 
 def getLogKeyFor(aLogLine, aLogKeysLog):
-    logKeys = Parser.getSimilarLines(aLogLine, aLogKeysLog)
-    return Parser.getStructuredLine(aLogLine, logKeys)
+    someKeys = Parser.getSimilarLines(aLogLine, aLogKeysLog)
+    return Parser.getStructuredLine(aLogLine, someKeys)
+#    if aLogLine == answer or aLogKeysLog.count(answer) == 0:
+#        global logKeys
+#        logKeys.append(answer)
+#    return answer
+#Trying to make it learn new logs(?)
 
 
 def openAndReadFile(aFileName):

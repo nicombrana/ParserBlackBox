@@ -1,68 +1,10 @@
-import datetime
-import sys
-import os
-import concurrent.futures
-import multiprocessing
 import re
 
 
-LogFileName = sys.argv[1]
-FreeTextFileName = LogFileName + "FreeText"
-StructuredLogFileName = sys.argv[2]
-freeTextSeparatorToken = sys.argv[3]
 lineSeparatorToken = "\n"
 wildcardToken = "*"
 valueSeparatorToken = ": "
-tokenList = [': ', '=', freeTextSeparatorToken]
-maxWorkers = multiprocessing.cpu_count()
-
-
-def parseFullLogText(aLogText):
-    aFreeTextLog = keepFreeText(aLogText, freeTextSeparatorToken)
-    aLogLineArray = lineSeparatorToken.join(aFreeTextLog)
-    return parseFreeText(aLogLineArray, valueSeparatorToken)
-
-
-def parseLogFile():
-    generateFreeTextLog(LogFileName)
-    parseFreeTextByChunks()
-
-
-def parseFreeTextByChunks():
-    print("Begin Parsing")
-    print(datetime.datetime.now().time())
-    logKey = []
-    freeTextFile = open(FreeTextFileName, 'r')
-
-    print("Initialize Parsing 1 Chunk")
-    print(datetime.datetime.now().time())
-    firstChunk = readLines(freeTextFile, 512)
-    logKey = parseFreeText(firstChunk)
-    print(datetime.datetime.now().time())
-    print("Parsing 1 Chunk Completed")
-
-    print("Begin Reduction of File by Chunks against the 1 Parsed Chunk")
-    print(datetime.datetime.now().time())
-    with concurrent.futures.ThreadPoolExecutor(max_workers=maxWorkers) as executor:
-        for f in executor.map(lambda a: compareLogs(logKey, a), readInChunks(freeTextFile)):
-            newLines = list(f)
-            appendWith(logKey, newLines)
-    freeTextFile.close()
-    print(datetime.datetime.now().time())
-    print("Reduction of File by Chunks against the 1 Parsed Chunk Completed")
-
-    print("Begin Elimination of Particular Cases")
-    print(datetime.datetime.now().time())
-    finalLogKeys = parseArray(logKey)
-    print(datetime.datetime.now().time())
-    print("Elimination Completed")
-
-    structuredLogFile = open(StructuredLogFileName, 'w')
-    structuredLogFile.write(lineSeparatorToken.join(finalLogKeys))
-    structuredLogFile.close()
-    os.remove(FreeTextFileName)
-    print(datetime.datetime.now().time())
-    print("Parsing Completed")
+tokenList = [': ', '=', " - "]
 
 
 def readInChunks(aFile, lines_ammount=256):
@@ -80,21 +22,6 @@ def readLines(aFile, anAmmountOfLines):
         lines += aFile.readline()
         times += 1
     return lines
-
-
-def generateFreeTextLog(aCompleteLogFileName):
-    print("Remove Metadata and Generate FreeText Log")
-    print(datetime.datetime.now().time())
-    logFile = open(aCompleteLogFileName, encoding="ISO-8859-1")
-    freeTextLog = open(FreeTextFileName, 'w')
-    readLines(logFile, 3)
-    for line in logFile:
-        freeText = removeTagsFromLineAfterToken(line, freeTextSeparatorToken)
-        freeTextLog.write(freeText)
-    freeTextLog.close()
-    logFile.close()
-    print(datetime.datetime.now().time())
-    print("Metada Removed and FreeText Log Generated")
 
 
 def parseFreeText(aLogChunk):
