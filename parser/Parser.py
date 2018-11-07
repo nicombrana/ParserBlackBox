@@ -5,6 +5,7 @@ lineSeparatorToken = "\n"
 wildcardToken = "*"
 valueSeparatorToken = ": "
 tokenList = [': ', '=', " - "]
+timestampExpression = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}' #'\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}.\d{3}' For small logs
 
 
 def readInChunks(aFile, lines_ammount=256):
@@ -200,15 +201,9 @@ def keepTimestamp(aLogText):
 
 
 def getTimeStampFrom(aLine):
-    r = re.compile('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}')
-    lineArray = splitTextIntoByToken(aLine, " ")
-    timeStamp = []
-    if len(lineArray) > 2:
-        timeStamp.append(lineArray[1])
-        timeStamp.append(lineArray[2])
-    timeStamp = " ".join(timeStamp)
-    if r.match(timeStamp):
-        return timeStamp
+    timestamp = re.search(timestampExpression, aLine)
+    if timestamp is not None:
+        return timestamp.group()
     return ""
 
 
