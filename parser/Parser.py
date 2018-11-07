@@ -5,7 +5,8 @@ lineSeparatorToken = "\n"
 wildcardToken = "*"
 valueSeparatorToken = ": "
 tokenList = [': ', '=', " - "]
-timestampExpression = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}' #'\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}.\d{3}' For small logs
+timestampExpression = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}'
+#'\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}.\d{3}' For small logs
 
 
 def readInChunks(aFile, lines_ammount=256):
@@ -94,10 +95,15 @@ def hasMoreTokens(aStructuredLine, anotherAnswer):
 
 
 def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues):
-    if bothHaveTheToken(aLogLine, anotherLogLine, valueSeparatorToken):
+    cantTokens = maxParamValues + tokenCount(aLogLine)
+    if hasToken(aLogLine, valueSeparatorToken) and hasToken(anotherLogLine, valueSeparatorToken):
         return structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, valueSeparatorToken)
+    if hasToken(aLogLine, '{') and hasToken(anotherLogLine, '{'):
+        return structurizedObjectLogLines(aLogLine, anotherLogLine, maxParamValues, ['{', '}'])
+    if hasToken(aLogLine, '[') and hasToken(anotherLogLine, '['):
+        return structurizedObjectLogLines(aLogLine, anotherLogLine, maxParamValues, ['[', ']'])
     if not(hasToken(aLogLine, valueSeparatorToken)) & (not(hasToken(anotherLogLine, valueSeparatorToken))):
-        return structurizedLogLines(aLogLine, anotherLogLine, maxParamValues)
+        return structurizedLogLines(aLogLine, anotherLogLine, cantTokens)
 
 
 def structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, aToken):
@@ -147,17 +153,33 @@ def hasToken(aLogLine, aToken):
 
 
 def sameLength(aLogLine, anotherLogLine):
-    if (bothHaveTheToken(aLogLine, anotherLogLine, valueSeparatorToken)):
+    if hasToken(aLogLine, valueSeparatorToken) and hasToken(anotherLogLine, valueSeparatorToken):
         aLine = splitTextIntoByToken(aLogLine, valueSeparatorToken)
         aLine = splitTextIntoByToken(aLine[0], " ")
         anotherLine = splitTextIntoByToken(anotherLogLine, valueSeparatorToken)
         anotherLine = splitTextIntoByToken(anotherLine[0], " ")
         return len(aLine) == len(anotherLine)
+    if hasToken(aLogLine, '{') and hasToken(anotherLogLine, '{'):
+        return sameLengthConsideringTokens(aLogLine, anotherLogLine, ['{', '}'])
+    if hasToken(aLogLine, '[') and hasToken(anotherLogLine, ']'):
+        return sameLengthConsideringTokens(aLogLine, anotherLogLine, ['[', ']'])
     if not(hasToken(aLogLine, valueSeparatorToken)) & (not(hasToken(anotherLogLine, valueSeparatorToken))):
         logLineList = splitTextIntoByToken(aLogLine, " ")
         anotherLogLineList = splitTextIntoByToken(anotherLogLine, " ")
         return len(logLineList) == len(anotherLogLineList)
     return False
+
+
+def sameLengthConsideringTokens(aLogLine, anotherLogLine, tokens):
+    aLineFirstPart = splitTextIntoByToken(aLogLine, tokens[0])
+    anotherLineFirstPart = splitTextIntoByToken(anotherLogLine, tokens[0])
+    aLFirst = splitTextIntoByToken(aLineFirstPart[0], " ")
+    anLFirst = splitTextIntoByToken(anotherLineFirstPart[0], " ")
+
+    aLineSecondPart = removeTagsFromLineAfterToken(aLogLine, tokens[1])
+    anotherLineSecondPart = removeTagsFromLineAfterToken(anotherLogLine, tokens[1])
+
+    return (len(aLFirst) == len(anLFirst)) and sameLength(aLineSecondPart, anotherLineSecondPart)
 
 
 def keepFreeText(aLogText, aToken):
@@ -212,3 +234,20 @@ def tokenCount(aLine):
     for token in tokenList:
         tokenCount += aLine.count(token)
     return tokenCount
+
+
+def structurizedObjectLogLines(aLogLine, anotherLogLine, maxParamValues, tokens):
+    aLineArray = splitTextIntoByToken(aLogLine, tokens[0])
+    anotherLineArray = splitTextIntoByToken(anotherLogLine, tokens[0])
+    aL = removeTagsFromLineAfterToken(aLogLine, tokens[1])
+    anotherL = removeTagsFromLineAfterToken(anotherLogLine, tokens[1])
+
+    aLineArray[1] = aL
+    anotherLineArray[1] = anotherL
+
+    structuredLine = []
+    structuredLine.append(structurizedSimilarLines(aLineArray[0], anotherLineArray[0], maxParamValues))
+    structuredLine.append(wildcardToken)
+    structuredLine[1] += (tokens[1])
+    structuredLine[1] += structurizedSimilarLines(aLineArray[1], anotherLineArray[1], maxParamValues)
+    return tokens[0].join(structuredLine)
