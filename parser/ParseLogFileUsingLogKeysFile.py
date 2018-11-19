@@ -61,11 +61,11 @@ def findLogKeyFor(aLogLine, aLogKeyLog):
 
 def getLogKeyFor(aLogLine, aLogKeysLog):
     someKeys = Parser.getSimilarLines(aLogLine, aLogKeysLog)
-    return Parser.getStructuredLine(aLogLine, someKeys)
-#    if aLogLine == answer or aLogKeysLog.count(answer) == 0:
-#        global logKeys
-#        logKeys.append(answer)
-#    return answer
+    answer = Parser.getStructuredLine(aLogLine, someKeys)
+    if aLogLine == answer or aLogKeysLog.count(answer) == 0:
+        global logKeys
+        logKeys.append(answer)
+    return answer
 #Trying to make it learn new logs(?)
 
 

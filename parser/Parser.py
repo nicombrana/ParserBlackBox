@@ -5,8 +5,8 @@ lineSeparatorToken = "\n"
 wildcardToken = "*"
 valueSeparatorToken = ": "
 tokenList = [': ', '=', " - "]
-timestampExpression = '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}'
-#'\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}.\d{3}' For small logs
+timestampExpression = '\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}.\d{3}'
+#'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}' For small logs
 
 
 def readInChunks(aFile, lines_ammount=256):
@@ -104,6 +104,23 @@ def structurizedSimilarLines(aLogLine, anotherLogLine, maxParamValues):
         return structurizedObjectLogLines(aLogLine, anotherLogLine, maxParamValues, ['[', ']'])
     if not(hasToken(aLogLine, valueSeparatorToken)) & (not(hasToken(anotherLogLine, valueSeparatorToken))):
         return structurizedLogLines(aLogLine, anotherLogLine, cantTokens)
+
+
+def structurizedObjectLogLines(aLogLine, anotherLogLine, maxParamValues, tokens):
+    aLineArray = splitTextIntoByToken(aLogLine, tokens[0])
+    anotherLineArray = splitTextIntoByToken(anotherLogLine, tokens[0])
+    aL = removeTagsFromLineAfterToken(aLogLine, tokens[1])
+    anotherL = removeTagsFromLineAfterToken(anotherLogLine, tokens[1])
+
+    aLineArray[1] = aL
+    anotherLineArray[1] = anotherL
+
+    structuredLine = []
+    structuredLine.append(structurizedSimilarLines(aLineArray[0], anotherLineArray[0], maxParamValues))
+    structuredLine.append(wildcardToken)
+    structuredLine[1] += (tokens[1])
+    structuredLine[1] += structurizedSimilarLines(aLineArray[1], anotherLineArray[1], maxParamValues)
+    return tokens[0].join(structuredLine)
 
 
 def structurizedLogLineConsideringToken(aLogLine, anotherLogLine, maxParamValues, aToken):
@@ -234,20 +251,3 @@ def tokenCount(aLine):
     for token in tokenList:
         tokenCount += aLine.count(token)
     return tokenCount
-
-
-def structurizedObjectLogLines(aLogLine, anotherLogLine, maxParamValues, tokens):
-    aLineArray = splitTextIntoByToken(aLogLine, tokens[0])
-    anotherLineArray = splitTextIntoByToken(anotherLogLine, tokens[0])
-    aL = removeTagsFromLineAfterToken(aLogLine, tokens[1])
-    anotherL = removeTagsFromLineAfterToken(anotherLogLine, tokens[1])
-
-    aLineArray[1] = aL
-    anotherLineArray[1] = anotherL
-
-    structuredLine = []
-    structuredLine.append(structurizedSimilarLines(aLineArray[0], anotherLineArray[0], maxParamValues))
-    structuredLine.append(wildcardToken)
-    structuredLine[1] += (tokens[1])
-    structuredLine[1] += structurizedSimilarLines(aLineArray[1], anotherLineArray[1], maxParamValues)
-    return tokens[0].join(structuredLine)
